@@ -1,0 +1,6 @@
+{
+  "name": "Subject Attendance Tracker",
+  "description": "A mobile-first, single-file personal subject attendance tracker with quick present/absent logging, subject detail editing, and offline localStorage persistence.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}

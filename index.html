@@ -1,0 +1,2665 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+  <title>Subject Attendance Tracker</title>
+  <meta name="description" content="A mobile-first, single-file personal subject attendance tracker with quick present/absent logging, subject detail editing, and offline localStorage persistence." />
+  <meta property="og:title" content="Subject Attendance Tracker" />
+  <meta property="og:description" content="Track your personal subject attendance offline with instant present/absent logging and automatic 75% threshold alerts." />
+  <meta property="og:type" content="website" />
+  <meta name="twitter:card" content="summary_large_image" />
+
+  <!-- Mobile / Standalone PWA Meta Tags -->
+  <meta name="theme-color" content="#000000" />
+  <meta name="mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+  <meta name="apple-mobile-web-app-title" content="Attendance" />
+
+  <!-- Embedded App Icon (SVG Data URI) -->
+  <link
+    id="app-favicon"
+    rel="icon"
+    type="image/svg+xml"
+    href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 512 512'%3E%3Cdefs%3E%3ClinearGradient id='g' x1='0' y1='0' x2='0' y2='1'%3E%3Cstop offset='0%25' stop-color='%23000000'/%3E%3Cstop offset='100%25' stop-color='%238C2D0A'/%3E%3C/linearGradient%3E%3C/defs%3E%3Crect width='512' height='512' rx='112' fill='url(%23g)'/%3E%3Crect x='28' y='28' width='456' height='456' rx='88' fill='none' stroke='%23F97316' stroke-opacity='0.42' stroke-width='10'/%3E%3Cpath d='M154 268l68 68 136-156' fill='none' stroke='%2322C55E' stroke-width='38' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E"
+  />
+  <link id="apple-touch-icon" rel="apple-touch-icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 512 512'%3E%3Cdefs%3E%3ClinearGradient id='g' x1='0' y1='0' x2='0' y2='1'%3E%3Cstop offset='0%25' stop-color='%23000000'/%3E%3Cstop offset='100%25' stop-color='%238C2D0A'/%3E%3C/linearGradient%3E%3C/defs%3E%3Crect width='512' height='512' fill='url(%23g)'/%3E%3Cpath d='M154 268l68 68 136-156' fill='none' stroke='%2322C55E' stroke-width='38' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E" />
+
+  <!-- Embedded Data-URI Web App Manifest for Standalone Mode -->
+  <link
+    id="app-manifest"
+    rel="manifest"
+    href="data:application/manifest+json;charset=utf-8,%7B%22id%22%3A%22%2F%22%2C%22name%22%3A%22Subject%20Attendance%20Tracker%22%2C%22short_name%22%3A%22Attendance%22%2C%22description%22%3A%22Personal%20Subject%20Attendance%20Tracker%20with%20offline%20storage%22%2C%22start_url%22%3A%22.%2F%22%2C%22scope%22%3A%22.%2F%22%2C%22display%22%3A%22standalone%22%2C%22orientation%22%3A%22portrait%22%2C%22background_color%22%3A%22%23000000%22%2C%22theme_color%22%3A%22%23000000%22%2C%22icons%22%3A%5B%7B%22src%22%3A%22data%3Aimage%2Fsvg%2Bxml%2C%253Csvg%2520xmlns%3D'http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg'%2520viewBox%3D'0%25200%2520512%2520512'%253E%253Cdefs%253E%253ClinearGradient%2520id%3D'g'%2520x1%3D'0'%2520y1%3D'0'%2520x2%3D'0'%2520y2%3D'1'%253E%253Cstop%2520offset%3D'0%2525'%2520stop-color%3D'%2523000000'%2F%253E%253Cstop%2520offset%3D'100%2525'%2520stop-color%3D'%25238C2D0A'%2F%253E%253C%2FlinearGradient%253E%253C%2Fdefs%253E%253Crect%2520width%3D'512'%2520height%3D'512'%2520rx%3D'112'%2520fill%3D'url(%2523g)'%2F%253E%253Cpath%2520d%3D'M154%2520268l68%252068%2520136-156'%2520fill%3D'none'%2520stroke%3D'%252322C55E'%2520stroke-width%3D'40'%2520stroke-linecap%3D'round'%2520stroke-linejoin%3D'round'%2F%253E%253C%2Fsvg%253E%22%2C%22sizes%22%3A%22192x192%20512x512%22%2C%22type%22%3A%22image%2Fsvg%2Bxml%22%2C%22purpose%22%3A%22any%22%7D%5D%7D"
+  />
+
+  <!-- Optional Online Font Enhancement (Gracefully Falls Back Offline) -->
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@500;600;700&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
+
+  <style>
+    :root {
+      --bg-top: #000000;
+      --bg-mid-1: #120602;
+      --bg-mid-2: #3A1405;
+      --bg-bottom: #8C2D0A;
+
+      --green: #22C55E;
+      --green-soft: rgba(34, 197, 94, 0.14);
+      --green-border: rgba(34, 197, 94, 0.38);
+      --green-active: rgba(34, 197, 94, 0.26);
+
+      --royal: #2563EB;
+      --royal-vibrant: #4169E1;
+      --royal-text: #5B8DEF;
+      --royal-soft: rgba(65, 105, 225, 0.24);
+      --royal-border: rgba(65, 105, 225, 0.72);
+      --royal-active: rgba(37, 99, 235, 0.56);
+
+      --cosmic: #F97316;
+      --cosmic-hover: #EA580C;
+      --cosmic-soft: rgba(249, 115, 22, 0.15);
+      --cosmic-border: rgba(249, 115, 22, 0.28);
+      --cosmic-border-hover: rgba(249, 115, 22, 0.56);
+
+      --danger: #EF4444;
+      --danger-text: #F87171;
+      --danger-soft: rgba(239, 68, 68, 0.13);
+      --danger-border: rgba(239, 68, 68, 0.34);
+
+      --card-bg: rgba(18, 9, 5, 0.8);
+      --card-bg-hover: rgba(29, 14, 7, 0.92);
+      --surface-box: rgba(26, 13, 8, 0.88);
+      --sheet-bg: #120804;
+      --input-bg: rgba(255, 255, 255, 0.05);
+
+      --text-primary: #F8FAFC;
+      --text-secondary: #D1BEB2;
+      --text-muted: #9E8677;
+      --hairline: rgba(249, 115, 22, 0.18);
+
+      --font-sans: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+      --font-mono: 'JetBrains Mono', ui-monospace, SFMono-Regular, Menlo, monospace;
+
+      --ease-out: cubic-bezier(0.16, 1, 0.3, 1);
+      --safe-top: env(safe-area-inset-top, 0px);
+      --safe-bottom: env(safe-area-inset-bottom, 0px);
+    }
+
+    *,
+    *::before,
+    *::after {
+      box-sizing: border-box;
+      -webkit-tap-highlight-color: transparent;
+    }
+
+    html {
+      height: 100%;
+      background-color: var(--bg-top);
+      color: var(--text-primary);
+      font-family: var(--font-sans);
+      -webkit-font-smoothing: antialiased;
+      -moz-osx-font-smoothing: grayscale;
+    }
+
+    body {
+      margin: 0;
+      min-height: 100dvh;
+      background-color: var(--bg-top);
+      background-image: linear-gradient(
+        180deg,
+        var(--bg-top) 0%,
+        var(--bg-mid-1) 34%,
+        var(--bg-mid-2) 70%,
+        var(--bg-bottom) 100%
+      );
+      background-attachment: fixed;
+      color: var(--text-primary);
+      letter-spacing: 0.01em;
+      overflow-x: hidden;
+    }
+
+    body.sheet-open {
+      overflow: hidden;
+    }
+
+    button,
+    input {
+      font-family: inherit;
+      color: inherit;
+    }
+
+    button {
+      cursor: pointer;
+      border: none;
+      background: none;
+      padding: 0;
+      touch-action: manipulation;
+    }
+
+    button:focus-visible,
+    input:focus-visible,
+    [role="button"]:focus-visible {
+      outline: 2px solid var(--cosmic);
+      outline-offset: 2px;
+    }
+
+    /* Layout Shell */
+    .app-shell {
+      min-height: 100dvh;
+      display: flex;
+      flex-direction: column;
+      padding-bottom: calc(96px + var(--safe-bottom));
+    }
+
+    .container {
+      width: 100%;
+      max-width: 780px;
+      margin: 0 auto;
+      padding-left: 16px;
+      padding-right: 16px;
+    }
+
+    /* Pinned Top Header */
+    .top-header {
+      position: sticky;
+      top: 0;
+      z-index: 20;
+      padding-top: calc(14px + var(--safe-top));
+      padding-bottom: 14px;
+      background: linear-gradient(
+        180deg,
+        rgba(0, 0, 0, 0.96) 0%,
+        rgba(16, 6, 2, 0.88) 85%,
+        rgba(16, 6, 2, 0) 100%
+      );
+      backdrop-filter: blur(14px);
+      -webkit-backdrop-filter: blur(14px);
+      border-bottom: 1px solid rgba(249, 115, 22, 0.18);
+    }
+
+    .header-inner {
+      display: flex;
+      align-items: flex-end;
+      justify-content: space-between;
+      gap: 16px;
+    }
+
+    .overall-block {
+      min-width: 0;
+      flex: 1;
+    }
+
+    .header-kicker-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      margin-bottom: 4px;
+    }
+
+    .header-title {
+      margin: 0;
+      font-size: 13px;
+      font-weight: 600;
+      color: var(--text-secondary);
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .overall-main-row {
+      display: flex;
+      align-items: baseline;
+      gap: 14px;
+      flex-wrap: wrap;
+    }
+
+    .overall-percent {
+      margin: 0;
+      font-family: var(--font-mono);
+      font-variant-numeric: tabular-nums;
+      font-size: clamp(2.4rem, 9vw, 3.25rem);
+      font-weight: 700;
+      line-height: 1;
+      letter-spacing: -0.04em;
+      color: var(--text-primary);
+      transition: color 180ms var(--ease-out);
+    }
+
+    .overall-percent.is-good {
+      color: var(--green);
+    }
+
+    .overall-percent.is-low {
+      color: var(--royal-text);
+    }
+
+    .overall-percent.is-empty {
+      color: var(--text-primary);
+    }
+
+    .overall-meta {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      margin-top: 6px;
+      font-size: 13px;
+      color: var(--text-secondary);
+      flex-wrap: wrap;
+    }
+
+    .overall-fraction {
+      font-family: var(--font-mono);
+      font-variant-numeric: tabular-nums;
+      font-weight: 600;
+      color: var(--text-primary);
+    }
+
+    .meta-sep {
+      color: var(--text-muted);
+      user-select: none;
+    }
+
+    .overall-status-text {
+      font-weight: 500;
+    }
+
+    .overall-status-text.is-good {
+      color: var(--green);
+    }
+
+    .overall-status-text.is-low {
+      color: var(--royal-text);
+    }
+
+    /* Header Install Action */
+    .header-actions {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      flex-shrink: 0;
+      align-self: flex-start;
+    }
+
+    .install-btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      min-height: 36px;
+      padding: 6px 12px;
+      border-radius: 10px;
+      border: 1px solid var(--cosmic-border);
+      background: rgba(249, 115, 22, 0.14);
+      color: #FED7AA;
+      font-size: 12px;
+      font-weight: 600;
+      white-space: nowrap;
+      transition: background-color 160ms var(--ease-out), border-color 160ms var(--ease-out), transform 140ms var(--ease-out);
+    }
+
+    .install-btn:hover {
+      background: rgba(249, 115, 22, 0.24);
+      border-color: var(--cosmic-border-hover);
+    }
+
+    .install-btn:active {
+      transform: scale(0.97);
+    }
+
+    .install-btn[hidden] {
+      display: none;
+    }
+
+    /* Overall Progress Rail */
+    .overall-rail {
+      position: relative;
+      height: 5px;
+      width: 100%;
+      margin-top: 12px;
+      border-radius: 999px;
+      background: rgba(255, 255, 255, 0.08);
+      overflow: visible;
+    }
+
+    .overall-rail-fill {
+      height: 100%;
+      border-radius: 999px;
+      width: 0%;
+      background: var(--cosmic);
+      transition: width 240ms var(--ease-out), background-color 180ms var(--ease-out);
+    }
+
+    .overall-rail-fill.is-good {
+      background: var(--green);
+    }
+
+    .overall-rail-fill.is-low {
+      background: var(--royal-vibrant);
+    }
+
+    .threshold-mark {
+      position: absolute;
+      left: 75%;
+      top: -3px;
+      width: 2px;
+      height: 11px;
+      border-radius: 2px;
+      background: rgba(248, 250, 252, 0.55);
+      pointer-events: none;
+    }
+
+    /* Main Content */
+    .main-content {
+      flex: 1;
+      padding-top: 20px;
+      padding-bottom: 24px;
+    }
+
+    .section-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      margin-bottom: 14px;
+    }
+
+    .section-heading {
+      margin: 0;
+      font-size: 14px;
+      font-weight: 600;
+      color: var(--text-secondary);
+    }
+
+    .section-hint {
+      font-size: 12px;
+      color: var(--text-muted);
+    }
+
+    /* Subject List */
+    .subject-list {
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+    }
+
+    /* Subject Box */
+    .subject-card {
+      position: relative;
+      width: 100%;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 14px;
+      padding: 16px;
+      border-radius: 14px;
+      background: var(--card-bg);
+      border: 1px solid var(--cosmic-border);
+      backdrop-filter: blur(10px);
+      -webkit-backdrop-filter: blur(10px);
+      cursor: pointer;
+      user-select: none;
+      transition:
+        background-color 160ms var(--ease-out),
+        border-color 160ms var(--ease-out),
+        transform 140ms var(--ease-out);
+    }
+
+    .subject-card:hover {
+      background: var(--card-bg-hover);
+      border-color: var(--cosmic-border-hover);
+    }
+
+    .subject-card:active {
+      transform: scale(0.992);
+    }
+
+    .subject-info {
+      min-width: 0;
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+    }
+
+    .subject-name-row {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      min-width: 0;
+    }
+
+    .subject-name {
+      margin: 0;
+      font-size: 16px;
+      font-weight: 700;
+      line-height: 1.3;
+      color: var(--text-primary);
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+
+    .subject-stats-row {
+      display: flex;
+      align-items: baseline;
+      gap: 10px;
+      flex-wrap: wrap;
+    }
+
+    .subject-pct {
+      font-family: var(--font-mono);
+      font-variant-numeric: tabular-nums;
+      font-size: 20px;
+      font-weight: 700;
+      line-height: 1.1;
+      letter-spacing: -0.02em;
+    }
+
+    .subject-pct.is-good {
+      color: var(--green);
+    }
+
+    .subject-pct.is-low {
+      color: var(--royal-text);
+    }
+
+    .subject-pct.is-zero {
+      color: var(--text-secondary);
+    }
+
+    .subject-fraction {
+      font-family: var(--font-mono);
+      font-variant-numeric: tabular-nums;
+      font-size: 13px;
+      font-weight: 500;
+      color: var(--text-secondary);
+    }
+
+    .subject-per-class {
+      font-size: 12px;
+      font-weight: 500;
+      color: var(--text-muted);
+    }
+
+    .subject-insight {
+      font-size: 12px;
+      color: var(--text-muted);
+      line-height: 1.3;
+    }
+
+    .subject-insight.is-good {
+      color: rgba(134, 239, 172, 0.85);
+    }
+
+    .subject-insight.is-low {
+      color: rgba(122, 167, 255, 0.92);
+    }
+
+    /* Micro Progress Line inside Card */
+    .subject-mini-bar {
+      width: 100%;
+      max-width: 240px;
+      height: 3px;
+      margin-top: 2px;
+      border-radius: 999px;
+      background: rgba(255, 255, 255, 0.08);
+      overflow: hidden;
+    }
+
+    .subject-mini-fill {
+      height: 100%;
+      border-radius: 999px;
+      transition: width 220ms var(--ease-out), background-color 180ms var(--ease-out);
+    }
+
+    .subject-mini-fill.is-good {
+      background: var(--green);
+    }
+
+    .subject-mini-fill.is-low {
+      background: var(--royal-vibrant);
+    }
+
+    .subject-mini-fill.is-zero {
+      background: var(--cosmic);
+    }
+
+    /* Quick Action Buttons (+ and -) */
+    .quick-actions {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      flex-shrink: 0;
+    }
+
+    .action-btn {
+      width: 48px;
+      height: 48px;
+      min-width: 44px;
+      min-height: 44px;
+      border-radius: 12px;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 24px;
+      font-weight: 700;
+      line-height: 1;
+      transition:
+        transform 120ms var(--ease-out),
+        background-color 140ms var(--ease-out),
+        border-color 140ms var(--ease-out),
+        color 140ms var(--ease-out),
+        box-shadow 140ms var(--ease-out);
+    }
+
+    .action-btn svg {
+      width: 22px;
+      height: 22px;
+      pointer-events: none;
+    }
+
+    .action-btn-present {
+      background: var(--green-soft);
+      border: 1px solid var(--green-border);
+      color: var(--green);
+    }
+
+    .action-btn-present:hover {
+      background: rgba(34, 197, 94, 0.22);
+      border-color: var(--green);
+    }
+
+    .action-btn-present:active {
+      background: var(--green-active);
+      transform: scale(0.92);
+    }
+
+    .action-btn-absent {
+      background: var(--royal-soft);
+      border: 1.5px solid var(--royal-vibrant);
+      color: #7AA7FF;
+    }
+
+    .action-btn-absent:hover {
+      background: var(--royal);
+      border-color: #60A5FA;
+      color: #FFFFFF;
+    }
+
+    .action-btn-absent:active {
+      background: var(--royal-active);
+      transform: scale(0.92);
+    }
+
+    /* Empty State */
+    .empty-state {
+      text-align: center;
+      padding: 44px 20px;
+      border-radius: 16px;
+      background: var(--card-bg);
+      border: 1px dashed var(--cosmic-border);
+    }
+
+    .empty-icon {
+      width: 48px;
+      height: 48px;
+      margin: 0 auto 14px;
+      border-radius: 14px;
+      background: var(--cosmic-soft);
+      border: 1px solid var(--cosmic-border);
+      color: var(--cosmic);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .empty-title {
+      margin: 0 0 6px;
+      font-size: 18px;
+      font-weight: 700;
+      color: var(--text-primary);
+    }
+
+    .empty-desc {
+      margin: 0 auto 20px;
+      max-width: 320px;
+      font-size: 14px;
+      line-height: 1.5;
+      color: var(--text-secondary);
+    }
+
+    /* Bottom Fixed Add Subject Dock */
+    .bottom-dock {
+      position: fixed;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      z-index: 25;
+      padding: 12px 16px calc(14px + var(--safe-bottom));
+      background: linear-gradient(
+        180deg,
+        rgba(140, 45, 10, 0) 0%,
+        rgba(46, 15, 5, 0.9) 34%,
+        rgba(24, 8, 3, 0.98) 100%
+      );
+      pointer-events: none;
+    }
+
+    .bottom-dock-inner {
+      max-width: 780px;
+      margin: 0 auto;
+      pointer-events: auto;
+    }
+
+    .add-subject-btn {
+      width: 100%;
+      min-height: 50px;
+      padding: 12px 20px;
+      border-radius: 14px;
+      background: var(--cosmic);
+      color: #FFFFFF;
+      font-size: 15px;
+      font-weight: 700;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      white-space: nowrap;
+      box-shadow: 0 10px 28px rgba(249, 115, 22, 0.34);
+      transition: background-color 160ms var(--ease-out), transform 140ms var(--ease-out), box-shadow 160ms var(--ease-out);
+    }
+
+    .add-subject-btn:hover {
+      background: var(--cosmic-hover);
+      box-shadow: 0 12px 32px rgba(249, 115, 22, 0.44);
+    }
+
+    .add-subject-btn:active {
+      transform: scale(0.985);
+    }
+
+    /* Undo Toast */
+    .toast {
+      position: fixed;
+      left: 50%;
+      bottom: calc(84px + var(--safe-bottom));
+      transform: translate(-50%, 16px);
+      z-index: 35;
+      display: flex;
+      align-items: center;
+      gap: 14px;
+      max-width: calc(100vw - 32px);
+      padding: 10px 14px;
+      border-radius: 12px;
+      background: rgba(24, 11, 5, 0.96);
+      border: 1px solid var(--cosmic-border-hover);
+      box-shadow: 0 14px 36px rgba(0, 0, 0, 0.55);
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 180ms var(--ease-out), transform 180ms var(--ease-out);
+    }
+
+    .toast.is-visible {
+      opacity: 1;
+      transform: translate(-50%, 0);
+      pointer-events: auto;
+    }
+
+    .toast-msg {
+      font-size: 13px;
+      font-weight: 500;
+      color: var(--text-primary);
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .toast-undo {
+      min-height: 32px;
+      padding: 4px 10px;
+      border-radius: 8px;
+      background: var(--cosmic-soft);
+      color: #FED7AA;
+      font-size: 13px;
+      font-weight: 700;
+      white-space: nowrap;
+      flex-shrink: 0;
+    }
+
+    .toast-undo:hover {
+      background: rgba(249, 115, 22, 0.28);
+    }
+
+    /* Modal / Bottom Sheet */
+    .sheet-backdrop {
+      position: fixed;
+      inset: 0;
+      z-index: 50;
+      background: rgba(0, 0, 0, 0.76);
+      backdrop-filter: blur(6px);
+      -webkit-backdrop-filter: blur(6px);
+      display: flex;
+      align-items: flex-end;
+      justify-content: center;
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 180ms var(--ease-out);
+    }
+
+    .sheet-backdrop.is-open {
+      opacity: 1;
+      pointer-events: auto;
+    }
+
+    .sheet-panel {
+      width: 100%;
+      max-width: 540px;
+      max-height: 92dvh;
+      overflow-y: auto;
+      background: linear-gradient(180deg, #170B06 0%, #090402 100%);
+      border-top: 1px solid var(--cosmic-border-hover);
+      border-left: 1px solid var(--cosmic-border);
+      border-right: 1px solid var(--cosmic-border);
+      border-radius: 24px 24px 0 0;
+      padding: 10px 20px calc(22px + var(--safe-bottom));
+      transform: translateY(28px);
+      transition: transform 220ms var(--ease-out);
+      box-shadow: 0 -16px 48px rgba(0, 0, 0, 0.72);
+    }
+
+    .sheet-backdrop.is-open .sheet-panel {
+      transform: translateY(0);
+    }
+
+    .sheet-handle {
+      width: 40px;
+      height: 4px;
+      border-radius: 999px;
+      background: rgba(209, 190, 178, 0.35);
+      margin: 2px auto 14px;
+    }
+
+    .sheet-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      margin-bottom: 18px;
+    }
+
+    .sheet-header-left {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      min-width: 0;
+    }
+
+    .sheet-back-btn {
+      width: 44px;
+      height: 44px;
+      margin-left: -6px;
+      border-radius: 12px;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      color: var(--cosmic);
+      background: transparent;
+      transition: background-color 140ms var(--ease-out), color 140ms var(--ease-out);
+    }
+
+    .sheet-back-btn:hover {
+      background: rgba(249, 115, 22, 0.14);
+      color: #FDBA74;
+    }
+
+    .sheet-title {
+      margin: 0;
+      font-size: 19px;
+      font-weight: 700;
+      color: var(--text-primary);
+    }
+
+    .sheet-close {
+      width: 44px;
+      height: 44px;
+      border-radius: 12px;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      color: var(--text-secondary);
+      background: rgba(255, 255, 255, 0.05);
+      transition: background-color 140ms var(--ease-out), color 140ms var(--ease-out);
+    }
+
+    .sheet-close:hover {
+      background: rgba(255, 255, 255, 0.1);
+      color: var(--text-primary);
+    }
+
+    /* Live Preview Bar Inside Detail Sheet */
+    .detail-preview {
+      display: flex;
+      align-items: baseline;
+      justify-content: space-between;
+      gap: 12px;
+      padding: 14px 16px;
+      margin-bottom: 18px;
+      border-radius: 16px;
+      background: rgba(0, 0, 0, 0.45);
+      border: 1px solid var(--hairline);
+    }
+
+    .detail-preview-pct {
+      font-family: var(--font-mono);
+      font-variant-numeric: tabular-nums;
+      font-size: 28px;
+      font-weight: 700;
+      line-height: 1;
+    }
+
+    .detail-preview-pct.is-good {
+      color: var(--green);
+    }
+
+    .detail-preview-pct.is-low {
+      color: var(--royal-text);
+    }
+
+    .detail-preview-pct.is-zero {
+      color: var(--text-secondary);
+    }
+
+    .detail-preview-meta {
+      text-align: right;
+      font-size: 13px;
+      color: var(--text-secondary);
+    }
+
+    .detail-preview-fraction {
+      font-family: var(--font-mono);
+      font-variant-numeric: tabular-nums;
+      font-weight: 600;
+      color: var(--text-primary);
+      display: block;
+    }
+
+    /* Form Controls */
+    .field-group {
+      margin-bottom: 16px;
+    }
+
+    .field-label {
+      display: block;
+      margin-bottom: 8px;
+      font-size: 12px;
+      font-weight: 600;
+      letter-spacing: 0.04em;
+      color: var(--text-secondary);
+    }
+
+    .text-input {
+      width: 100%;
+      min-height: 48px;
+      padding: 12px 14px;
+      border-radius: 14px;
+      background: var(--surface-box);
+      border: 1px solid var(--cosmic-border);
+      color: var(--text-primary);
+      font-size: 15px;
+      font-weight: 600;
+      transition: border-color 140ms var(--ease-out), background-color 140ms var(--ease-out);
+    }
+
+    .text-input:focus {
+      outline: none;
+      border-color: var(--cosmic);
+      background: rgba(249, 115, 22, 0.08);
+    }
+
+    .text-input::placeholder {
+      color: var(--text-muted);
+    }
+
+    /* Spacious Reference-Style Stepper Card */
+    .stepper-card {
+      display: grid;
+      grid-template-columns: 50px 1fr 50px;
+      align-items: center;
+      gap: 10px;
+      padding: 14px 16px;
+      border-radius: 16px;
+      background: var(--surface-box);
+      border: 1px solid var(--cosmic-border);
+      transition: border-color 140ms var(--ease-out);
+    }
+
+    .stepper-card:focus-within {
+      border-color: var(--cosmic);
+    }
+
+    .stepper-btn {
+      width: 50px;
+      height: 50px;
+      min-width: 44px;
+      min-height: 44px;
+      border-radius: 14px;
+      background: rgba(249, 115, 22, 0.14);
+      border: 1px solid rgba(249, 115, 22, 0.3);
+      color: #FDBA74;
+      font-size: 24px;
+      font-weight: 600;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      transition: background-color 140ms var(--ease-out), border-color 140ms var(--ease-out), transform 120ms var(--ease-out), opacity 140ms var(--ease-out);
+    }
+
+    .stepper-btn:hover:not(:disabled) {
+      background: rgba(249, 115, 22, 0.26);
+      border-color: var(--cosmic);
+      color: #FFFFFF;
+    }
+
+    .stepper-btn:active:not(:disabled) {
+      transform: scale(0.93);
+    }
+
+    .stepper-btn:disabled {
+      opacity: 0.28;
+      cursor: not-allowed;
+    }
+
+    .stepper-card.is-neutral .stepper-btn {
+      background: rgba(255, 255, 255, 0.06);
+      border-color: rgba(255, 255, 255, 0.12);
+      color: var(--text-secondary);
+    }
+
+    .stepper-card.is-neutral .stepper-btn:hover:not(:disabled) {
+      background: rgba(249, 115, 22, 0.18);
+      border-color: var(--cosmic-border-hover);
+      color: #FFFFFF;
+    }
+
+    .number-input {
+      width: 100%;
+      min-height: 48px;
+      padding: 4px 8px;
+      border: none;
+      border-radius: 10px;
+      background: transparent;
+      color: var(--cosmic);
+      font-family: var(--font-mono);
+      font-variant-numeric: tabular-nums;
+      font-size: 32px;
+      font-weight: 700;
+      text-align: center;
+      -moz-appearance: textfield;
+    }
+
+    .stepper-card.is-neutral .number-input {
+      color: var(--text-primary);
+    }
+
+    .number-input::-webkit-outer-spin-button,
+    .number-input::-webkit-inner-spin-button {
+      -webkit-appearance: none;
+      margin: 0;
+    }
+
+    .number-input:focus {
+      outline: none;
+      background: rgba(249, 115, 22, 0.08);
+    }
+
+    .field-error {
+      margin: 6px 0 0;
+      font-size: 12px;
+      font-weight: 500;
+      color: var(--royal-text);
+      min-height: 16px;
+    }
+
+    /* Recent History Section */
+    .history-section {
+      margin-top: 22px;
+    }
+
+    .history-header-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 8px;
+      margin-bottom: 10px;
+    }
+
+    .history-count {
+      font-size: 12px;
+      color: var(--text-muted);
+    }
+
+    .history-card {
+      border-radius: 16px;
+      background: var(--surface-box);
+      border: 1px solid var(--cosmic-border);
+      overflow: hidden;
+      max-height: 236px;
+      overflow-y: auto;
+    }
+
+    .history-list {
+      list-style: none;
+      margin: 0;
+      padding: 0;
+    }
+
+    .history-item {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      flex-wrap: wrap;
+      row-gap: 4px;
+      column-gap: 10px;
+      padding: 12px 14px;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+    }
+
+    .history-item:last-child {
+      border-bottom: none;
+    }
+
+    .history-status {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      min-width: 0;
+      flex: 1 1 auto;
+    }
+
+    .history-dot {
+      width: 7px;
+      height: 7px;
+      border-radius: 50%;
+      flex-shrink: 0;
+    }
+
+    .history-dot.is-present {
+      background: var(--green);
+    }
+
+    .history-dot.is-absent {
+      background: var(--royal-vibrant);
+    }
+
+    .history-dot.is-manual {
+      background: var(--cosmic);
+    }
+
+    .history-label {
+      font-size: 12.5px;
+      font-weight: 600;
+      line-height: 1.3;
+      color: var(--text-primary);
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .history-date {
+      font-family: var(--font-sans);
+      font-variant-numeric: tabular-nums;
+      font-size: 11px;
+      font-weight: 500;
+      line-height: 1.3;
+      color: var(--text-secondary);
+      text-align: right;
+      white-space: nowrap;
+      margin-left: auto;
+      flex-shrink: 0;
+    }
+
+    .history-empty {
+      padding: 20px 16px;
+      text-align: center;
+      font-size: 13px;
+      color: var(--text-muted);
+      margin: 0;
+    }
+
+    /* Sheet Action Buttons */
+    .sheet-actions {
+      display: flex;
+      gap: 10px;
+      margin-top: 18px;
+    }
+
+    .btn-primary {
+      flex: 1;
+      min-height: 48px;
+      padding: 12px 18px;
+      border-radius: 12px;
+      background: var(--cosmic);
+      color: #FFFFFF;
+      font-size: 15px;
+      font-weight: 700;
+      white-space: nowrap;
+      transition: background-color 150ms var(--ease-out), transform 120ms var(--ease-out);
+    }
+
+    .btn-primary:hover {
+      background: var(--cosmic-hover);
+    }
+
+    .btn-primary:active {
+      transform: scale(0.985);
+    }
+
+    .btn-secondary {
+      min-height: 48px;
+      padding: 12px 18px;
+      border-radius: 12px;
+      background: rgba(255, 255, 255, 0.07);
+      border: 1px solid rgba(255, 255, 255, 0.12);
+      color: var(--text-primary);
+      font-size: 15px;
+      font-weight: 600;
+      white-space: nowrap;
+      transition: background-color 150ms var(--ease-out);
+    }
+
+    .btn-secondary:hover {
+      background: rgba(255, 255, 255, 0.12);
+    }
+
+    /* Delete Zone & Inline Confirmation */
+    .danger-divider {
+      margin: 22px 0 16px;
+      border: 0;
+      border-top: 1px solid var(--hairline);
+    }
+
+    .btn-danger-outline {
+      width: 100%;
+      min-height: 48px;
+      padding: 12px 16px;
+      border-radius: 14px;
+      background: var(--danger-soft);
+      border: 1px solid var(--danger-border);
+      color: var(--danger-text);
+      font-size: 14px;
+      font-weight: 600;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      transition: background-color 140ms var(--ease-out), border-color 140ms var(--ease-out), color 140ms var(--ease-out);
+    }
+
+    .btn-danger-outline:hover {
+      background: rgba(239, 68, 68, 0.22);
+      border-color: var(--danger);
+      color: #FCA5A5;
+    }
+
+    .delete-confirm-box {
+      padding: 14px;
+      border-radius: 14px;
+      background: rgba(239, 68, 68, 0.12);
+      border: 1px solid rgba(239, 68, 68, 0.42);
+    }
+
+    .delete-confirm-box[hidden],
+    .btn-danger-outline[hidden] {
+      display: none;
+    }
+
+    .delete-confirm-text {
+      margin: 0 0 12px;
+      font-size: 14px;
+      line-height: 1.45;
+      color: var(--text-primary);
+    }
+
+    .delete-confirm-actions {
+      display: flex;
+      gap: 10px;
+    }
+
+    .btn-danger-solid {
+      flex: 1;
+      min-height: 44px;
+      padding: 10px 14px;
+      border-radius: 10px;
+      background: var(--danger);
+      color: #FFFFFF;
+      font-size: 14px;
+      font-weight: 700;
+      white-space: nowrap;
+    }
+
+    .btn-danger-solid:hover {
+      background: #DC2626;
+    }
+
+    /* Install Guide List */
+    .guide-steps {
+      margin: 0 0 18px;
+      padding-left: 20px;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      font-size: 14px;
+      line-height: 1.5;
+      color: var(--text-secondary);
+    }
+
+    .guide-steps strong {
+      color: var(--text-primary);
+    }
+
+    /* Desktop / Tablet Enhancements */
+    @media (min-width: 640px) {
+      .container {
+        padding-left: 24px;
+        padding-right: 24px;
+      }
+
+      .subject-card {
+        padding: 18px 20px;
+      }
+
+      .sheet-backdrop {
+        align-items: center;
+        padding: 20px;
+      }
+
+      .sheet-panel {
+        border-radius: 22px;
+        border: 1px solid var(--cosmic-border-hover);
+        padding: 20px 24px 24px;
+      }
+
+      .sheet-handle {
+        display: none;
+      }
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      *,
+      *::before,
+      *::after {
+        transition-duration: 0.01ms !important;
+        animation-duration: 0.01ms !important;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="app-shell">
+    <!-- Pinned Top Header: Overall Attendance -->
+    <header class="top-header" aria-label="Overall Attendance Summary">
+      <div class="container">
+        <div class="header-kicker-row">
+          <h1 class="header-title">Overall Attendance</h1>
+          <div class="header-actions">
+            <button id="install-app-btn" class="install-btn" type="button" hidden>
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                <path d="M12 3v12" />
+                <path d="m7 10 5 5 5-5" />
+                <path d="M5 21h14" />
+              </svg>
+              <span id="install-btn-label">Install App</span>
+            </button>
+          </div>
+        </div>
+
+        <div class="header-inner">
+          <div class="overall-block">
+            <div class="overall-main-row">
+              <p id="overall-percent" class="overall-percent is-empty" aria-live="polite">0%</p>
+            </div>
+            <div class="overall-meta">
+              <span id="overall-fraction" class="overall-fraction">0 / 0</span>
+              <span>classes attended</span>
+              <span class="meta-sep" aria-hidden="true">·</span>
+              <span id="overall-status" class="overall-status-text">75% target</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="overall-rail" role="progressbar" aria-label="Overall attendance progress" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0" id="overall-progressbar">
+          <div id="overall-rail-fill" class="overall-rail-fill"></div>
+          <div class="threshold-mark" title="75% target"></div>
+        </div>
+      </div>
+    </header>
+
+    <!-- Main Subject List -->
+    <main class="main-content">
+      <div class="container">
+        <div class="section-row">
+          <h2 class="section-heading" id="subject-count-heading">Subjects</h2>
+          <span class="section-hint">Tap a subject to edit</span>
+        </div>
+
+        <div id="subject-list" class="subject-list" aria-live="polite"></div>
+
+        <section id="empty-state" class="empty-state" hidden>
+          <div class="empty-icon" aria-hidden="true">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M4 19.5v-15A2.5 2.5 0 0 1 6.5 2H20v20H6.5a2.5 2.5 0 0 1 0-5H20" />
+              <path d="m9 10 2 2 4-4" />
+            </svg>
+          </div>
+          <h3 class="empty-title">No subjects tracked yet</h3>
+          <p class="empty-desc">Add your first subject to start logging present and absent classes offline.</p>
+        </section>
+      </div>
+    </main>
+
+    <!-- Pinned Bottom Thumb-Zone CTA -->
+    <div class="bottom-dock">
+      <div class="bottom-dock-inner">
+        <button id="open-add-btn" class="add-subject-btn" type="button">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+            <path d="M12 5v14" />
+            <path d="M5 12h14" />
+          </svg>
+          <span>Add Subject</span>
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Quick Undo Toast -->
+  <div id="toast" class="toast" role="status" aria-live="polite">
+    <span id="toast-msg" class="toast-msg"></span>
+    <button id="toast-undo-btn" class="toast-undo" type="button">Undo</button>
+  </div>
+
+  <!-- Add Subject Sheet -->
+  <div id="add-sheet" class="sheet-backdrop" role="dialog" aria-modal="true" aria-labelledby="add-sheet-title" aria-hidden="true">
+    <div class="sheet-panel">
+      <div class="sheet-handle" aria-hidden="true"></div>
+      <div class="sheet-header">
+        <h2 id="add-sheet-title" class="sheet-title">Add Subject</h2>
+        <button id="close-add-btn" class="sheet-close" type="button" aria-label="Close add subject dialog">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M18 6 6 18" />
+            <path d="m6 6 12 12" />
+          </svg>
+        </button>
+      </div>
+
+      <form id="add-subject-form" novalidate>
+        <div class="field-group">
+          <label class="field-label" for="add-name-input">Subject Name</label>
+          <input id="add-name-input" class="text-input" type="text" placeholder="e.g., Data Structures" maxlength="80" autocomplete="off" required />
+          <p id="add-name-error" class="field-error" role="alert"></p>
+        </div>
+
+        <div class="field-group">
+          <label class="field-label" for="add-per-class-input">Attendance Per Class</label>
+          <div class="stepper-card is-neutral">
+            <button id="add-per-class-dec" class="stepper-btn" type="button" aria-label="Decrease attendance per class">−</button>
+            <input id="add-per-class-input" class="number-input" type="number" inputmode="numeric" min="1" value="1" />
+            <button id="add-per-class-inc" class="stepper-btn" type="button" aria-label="Increase attendance per class">+</button>
+          </div>
+        </div>
+
+        <div class="field-group">
+          <label class="field-label" for="add-held-input">Classes Held So Far (Optional)</label>
+          <div class="stepper-card">
+            <button id="add-held-dec" class="stepper-btn" type="button" aria-label="Decrease initial classes held">−</button>
+            <input id="add-held-input" class="number-input" type="number" inputmode="numeric" min="0" value="0" />
+            <button id="add-held-inc" class="stepper-btn" type="button" aria-label="Increase initial classes held">+</button>
+          </div>
+        </div>
+
+        <div class="field-group">
+          <label class="field-label" for="add-attended-input">Classes Attended (Optional)</label>
+          <div class="stepper-card">
+            <button id="add-attended-dec" class="stepper-btn" type="button" aria-label="Decrease initial classes attended">−</button>
+            <input id="add-attended-input" class="number-input" type="number" inputmode="numeric" min="0" value="0" />
+            <button id="add-attended-inc" class="stepper-btn" type="button" aria-label="Increase initial classes attended">+</button>
+          </div>
+          <p id="add-count-error" class="field-error" role="alert"></p>
+        </div>
+
+        <div class="sheet-actions">
+          <button id="cancel-add-btn" class="btn-secondary" type="button">Cancel</button>
+          <button class="btn-primary" type="submit">Add Subject</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- Edit / Subject Details Sheet -->
+  <div id="edit-sheet" class="sheet-backdrop" role="dialog" aria-modal="true" aria-labelledby="edit-sheet-title" aria-hidden="true">
+    <div class="sheet-panel">
+      <div class="sheet-handle" aria-hidden="true"></div>
+      <div class="sheet-header">
+        <div class="sheet-header-left">
+          <button id="close-edit-btn" class="sheet-back-btn" type="button" aria-label="Back to subjects">
+            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+              <path d="m12 19-7-7 7-7" />
+              <path d="M19 12H5" />
+            </svg>
+          </button>
+          <h2 id="edit-sheet-title" class="sheet-title">Subject Details</h2>
+        </div>
+      </div>
+
+      <div class="detail-preview">
+        <span id="edit-preview-pct" class="detail-preview-pct is-zero">0%</span>
+        <div class="detail-preview-meta">
+          <span id="edit-preview-fraction" class="detail-preview-fraction">0 / 0</span>
+          <span id="edit-preview-status">No classes yet</span>
+        </div>
+      </div>
+
+      <form id="edit-subject-form" novalidate>
+        <div class="field-group">
+          <label class="field-label" for="edit-name-input">Subject Name</label>
+          <input id="edit-name-input" class="text-input" type="text" maxlength="80" autocomplete="off" required />
+          <p id="edit-name-error" class="field-error" role="alert"></p>
+        </div>
+
+        <div class="field-group">
+          <label class="field-label" for="edit-per-class-input">Attendance Per Class</label>
+          <div class="stepper-card is-neutral">
+            <button id="edit-per-class-dec" class="stepper-btn" type="button" aria-label="Decrease attendance per class">−</button>
+            <input id="edit-per-class-input" class="number-input" type="number" inputmode="numeric" min="1" value="1" />
+            <button id="edit-per-class-inc" class="stepper-btn" type="button" aria-label="Increase attendance per class">+</button>
+          </div>
+        </div>
+
+        <div class="field-group">
+          <label class="field-label" for="edit-held-input">Classes Held So Far</label>
+          <div class="stepper-card">
+            <button id="edit-held-dec" class="stepper-btn" type="button" aria-label="Decrease classes held">−</button>
+            <input id="edit-held-input" class="number-input" type="number" inputmode="numeric" min="0" value="0" />
+            <button id="edit-held-inc" class="stepper-btn" type="button" aria-label="Increase classes held">+</button>
+          </div>
+        </div>
+
+        <div class="field-group">
+          <label class="field-label" for="edit-attended-input">Classes Attended</label>
+          <div class="stepper-card">
+            <button id="edit-attended-dec" class="stepper-btn" type="button" aria-label="Decrease classes attended">−</button>
+            <input id="edit-attended-input" class="number-input" type="number" inputmode="numeric" min="0" value="0" />
+            <button id="edit-attended-inc" class="stepper-btn" type="button" aria-label="Increase classes attended">+</button>
+          </div>
+          <p id="edit-count-error" class="field-error" role="alert"></p>
+        </div>
+
+        <div class="sheet-actions">
+          <button id="cancel-edit-btn" class="btn-secondary" type="button">Cancel</button>
+          <button class="btn-primary" type="submit">Save Changes</button>
+        </div>
+      </form>
+
+      <!-- Recent History -->
+      <section class="history-section" aria-labelledby="history-heading">
+        <div class="history-header-row">
+          <span id="history-heading" class="field-label" style="margin: 0;">Recent History</span>
+          <span id="history-count" class="history-count">0 updates</span>
+        </div>
+        <div class="history-card">
+          <ul id="edit-history-list" class="history-list"></ul>
+          <p id="edit-history-empty" class="history-empty" hidden>No attendance updates recorded yet.</p>
+        </div>
+      </section>
+
+      <hr class="danger-divider" />
+
+      <button id="request-delete-btn" class="btn-danger-outline" type="button">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+          <path d="M3 6h18" />
+          <path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6" />
+          <path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2" />
+        </svg>
+        <span>Delete Subject</span>
+      </button>
+
+      <div id="delete-confirm-box" class="delete-confirm-box" hidden>
+        <p id="delete-confirm-text" class="delete-confirm-text"></p>
+        <div class="delete-confirm-actions">
+          <button id="cancel-delete-btn" class="btn-secondary" type="button" style="flex: 1; min-height: 44px; padding: 10px 14px;">Keep</button>
+          <button id="confirm-delete-btn" class="btn-danger-solid" type="button">Confirm Delete</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- iOS / Manual Add to Home Screen Guide Sheet -->
+  <div id="ios-guide-sheet" class="sheet-backdrop" role="dialog" aria-modal="true" aria-labelledby="ios-guide-title" aria-hidden="true">
+    <div class="sheet-panel">
+      <div class="sheet-handle" aria-hidden="true"></div>
+      <div class="sheet-header">
+        <h2 id="ios-guide-title" class="sheet-title">Add to Home Screen</h2>
+        <button id="close-ios-guide-btn" class="sheet-close" type="button" aria-label="Close install instructions">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M18 6 6 18" />
+            <path d="m6 6 12 12" />
+          </svg>
+        </button>
+      </div>
+      <ol class="guide-steps">
+        <li>Tap the <strong>Share</strong> icon in Safari's toolbar (or your browser menu).</li>
+        <li>Scroll down and choose <strong>Add to Home Screen</strong>.</li>
+        <li>Tap <strong>Add</strong> to launch Attendance full-screen like a native app.</li>
+      </ol>
+      <div class="sheet-actions" style="margin-top: 8px;">
+        <button id="done-ios-guide-btn" class="btn-primary" type="button">Got it</button>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    (function () {
+      'use strict';
+
+      const STORAGE_KEY = 'subject_attendance_tracker_v1';
+      const THRESHOLD = 75;
+
+      const now = Date.now();
+      const DAY_MS = 24 * 60 * 60 * 1000;
+
+      const STARTER_SUBJECTS = [
+        {
+          id: 'subj-1',
+          name: 'Data Structures',
+          attended: 14,
+          held: 17,
+          perClass: 1,
+          history: [
+            { id: 'h-1', type: 'present', delta: 1, attendedAfter: 14, heldAfter: 17, timestamp: now - 2 * 60 * 60 * 1000 },
+            { id: 'h-2', type: 'present', delta: 1, attendedAfter: 13, heldAfter: 16, timestamp: now - 2 * DAY_MS },
+            { id: 'h-3', type: 'absent', delta: 1, attendedAfter: 12, heldAfter: 15, timestamp: now - 4 * DAY_MS }
+          ]
+        },
+        {
+          id: 'subj-2',
+          name: 'Linear Algebra',
+          attended: 9,
+          held: 14,
+          perClass: 2,
+          history: [
+            { id: 'h-4', type: 'absent', delta: 2, attendedAfter: 9, heldAfter: 14, timestamp: now - 1 * DAY_MS },
+            { id: 'h-5', type: 'present', delta: 2, attendedAfter: 9, heldAfter: 12, timestamp: now - 3 * DAY_MS }
+          ]
+        },
+        {
+          id: 'subj-3',
+          name: 'Operating Systems',
+          attended: 0,
+          held: 0,
+          perClass: 1,
+          history: []
+        }
+      ];
+
+      // State
+      let subjects = loadSubjects();
+      let editingId = null;
+      let lastUndo = null;
+      let toastTimer = null;
+      let deferredInstallPrompt = null;
+
+      // DOM References
+      const els = {
+        overallPercent: document.getElementById('overall-percent'),
+        overallFraction: document.getElementById('overall-fraction'),
+        overallStatus: document.getElementById('overall-status'),
+        overallProgressbar: document.getElementById('overall-progressbar'),
+        overallRailFill: document.getElementById('overall-rail-fill'),
+        subjectCountHeading: document.getElementById('subject-count-heading'),
+        subjectList: document.getElementById('subject-list'),
+        emptyState: document.getElementById('empty-state'),
+
+        installBtn: document.getElementById('install-app-btn'),
+        installBtnLabel: document.getElementById('install-btn-label'),
+        iosGuideSheet: document.getElementById('ios-guide-sheet'),
+        closeIosGuideBtn: document.getElementById('close-ios-guide-btn'),
+        doneIosGuideBtn: document.getElementById('done-ios-guide-btn'),
+
+        openAddBtn: document.getElementById('open-add-btn'),
+        addSheet: document.getElementById('add-sheet'),
+        closeAddBtn: document.getElementById('close-add-btn'),
+        cancelAddBtn: document.getElementById('cancel-add-btn'),
+        addForm: document.getElementById('add-subject-form'),
+        addNameInput: document.getElementById('add-name-input'),
+        addNameError: document.getElementById('add-name-error'),
+        addPerClassInput: document.getElementById('add-per-class-input'),
+        addPerClassDec: document.getElementById('add-per-class-dec'),
+        addPerClassInc: document.getElementById('add-per-class-inc'),
+        addHeldInput: document.getElementById('add-held-input'),
+        addHeldDec: document.getElementById('add-held-dec'),
+        addHeldInc: document.getElementById('add-held-inc'),
+        addAttendedInput: document.getElementById('add-attended-input'),
+        addAttendedDec: document.getElementById('add-attended-dec'),
+        addAttendedInc: document.getElementById('add-attended-inc'),
+        addCountError: document.getElementById('add-count-error'),
+
+        editSheet: document.getElementById('edit-sheet'),
+        closeEditBtn: document.getElementById('close-edit-btn'),
+        cancelEditBtn: document.getElementById('cancel-edit-btn'),
+        editForm: document.getElementById('edit-subject-form'),
+        editPreviewPct: document.getElementById('edit-preview-pct'),
+        editPreviewFraction: document.getElementById('edit-preview-fraction'),
+        editPreviewStatus: document.getElementById('edit-preview-status'),
+        editNameInput: document.getElementById('edit-name-input'),
+        editNameError: document.getElementById('edit-name-error'),
+        editPerClassInput: document.getElementById('edit-per-class-input'),
+        editPerClassDec: document.getElementById('edit-per-class-dec'),
+        editPerClassInc: document.getElementById('edit-per-class-inc'),
+        editHeldInput: document.getElementById('edit-held-input'),
+        editHeldDec: document.getElementById('edit-held-dec'),
+        editHeldInc: document.getElementById('edit-held-inc'),
+        editAttendedInput: document.getElementById('edit-attended-input'),
+        editAttendedDec: document.getElementById('edit-attended-dec'),
+        editAttendedInc: document.getElementById('edit-attended-inc'),
+        editCountError: document.getElementById('edit-count-error'),
+        editHistoryList: document.getElementById('edit-history-list'),
+        editHistoryEmpty: document.getElementById('edit-history-empty'),
+        historyCount: document.getElementById('history-count'),
+        requestDeleteBtn: document.getElementById('request-delete-btn'),
+        deleteConfirmBox: document.getElementById('delete-confirm-box'),
+        deleteConfirmText: document.getElementById('delete-confirm-text'),
+        cancelDeleteBtn: document.getElementById('cancel-delete-btn'),
+        confirmDeleteBtn: document.getElementById('confirm-delete-btn'),
+
+        toast: document.getElementById('toast'),
+        toastMsg: document.getElementById('toast-msg'),
+        toastUndoBtn: document.getElementById('toast-undo-btn')
+      };
+
+      // Storage Helpers
+      function sanitizeNonNegInt(val) {
+        const parsed = parseInt(val, 10);
+        if (!Number.isFinite(parsed) || parsed < 0) return 0;
+        return parsed;
+      }
+
+      function sanitizePerClass(val) {
+        const parsed = parseInt(val, 10);
+        if (!Number.isFinite(parsed) || parsed < 1) return 1;
+        return Math.min(20, parsed);
+      }
+
+      function sanitizeHistoryEntry(entry) {
+        if (!entry || typeof entry !== 'object') return null;
+        const type =
+          entry.type === 'present' || entry.type === 'absent' || entry.type === 'manual'
+            ? entry.type
+            : 'manual';
+        const timestamp =
+          typeof entry.timestamp === 'number' && Number.isFinite(entry.timestamp)
+            ? entry.timestamp
+            : Date.now();
+        return {
+          id: typeof entry.id === 'string' && entry.id ? entry.id : createId(),
+          type: type,
+          delta: sanitizeNonNegInt(entry.delta || 1),
+          attendedAfter: sanitizeNonNegInt(entry.attendedAfter),
+          heldAfter: sanitizeNonNegInt(entry.heldAfter),
+          timestamp: timestamp
+        };
+      }
+
+      function sanitizeSubject(item, idx) {
+        const held = sanitizeNonNegInt(item && item.held);
+        const attended = Math.min(held, sanitizeNonNegInt(item && item.attended));
+        const perClass = sanitizePerClass(item && item.perClass);
+        const name = typeof (item && item.name) === 'string' && item.name.trim()
+          ? item.name.trim().slice(0, 80)
+          : 'Subject ' + (idx + 1);
+        const id = typeof (item && item.id) === 'string' && item.id
+          ? item.id
+          : createId();
+        const rawHistory = Array.isArray(item && item.history) ? item.history : [];
+        const history = rawHistory
+          .map(sanitizeHistoryEntry)
+          .filter(Boolean)
+          .slice(0, 100);
+        return { id, name, attended, held, perClass, history };
+      }
+
+      function loadSubjects() {
+        try {
+          const raw = localStorage.getItem(STORAGE_KEY);
+          if (raw === null) {
+            const initial = STARTER_SUBJECTS.map(sanitizeSubject);
+            localStorage.setItem(STORAGE_KEY, JSON.stringify(initial));
+            return initial;
+          }
+          const parsed = JSON.parse(raw);
+          if (!Array.isArray(parsed)) return [];
+          return parsed.map(sanitizeSubject);
+        } catch (_err) {
+          return STARTER_SUBJECTS.map(sanitizeSubject);
+        }
+      }
+
+      function saveSubjects() {
+        try {
+          localStorage.setItem(STORAGE_KEY, JSON.stringify(subjects));
+        } catch (_err) {
+          // Ignore storage quota or private-mode errors gracefully
+        }
+      }
+
+      function createId() {
+        if (window.crypto && typeof window.crypto.randomUUID === 'function') {
+          return window.crypto.randomUUID();
+        }
+        return 'subj-' + Date.now().toString(36) + '-' + Math.random().toString(36).slice(2, 8);
+      }
+
+      // Math & Formatting
+      function calcPercentage(attended, held) {
+        if (held <= 0) return 0;
+        return (attended / held) * 100;
+      }
+
+      function formatPercent(pct, held) {
+        if (held <= 0) return '0%';
+        const rounded = Math.round(pct * 10) / 10;
+        return (Number.isInteger(rounded) ? rounded.toFixed(0) : rounded.toFixed(1)) + '%';
+      }
+
+      function getInsightText(attended, held) {
+        if (held === 0) return 'No classes yet';
+        const pct = calcPercentage(attended, held);
+        if (pct >= THRESHOLD) {
+          // Max consecutive absences while remaining >= 75%:
+          // attended / (held + x) >= 0.75 => x <= (attended / 0.75) - held
+          const canMiss = Math.floor((attended / 0.75) - held + 1e-9);
+          if (canMiss <= 0) return 'On track · Do not miss next';
+          return 'On track · Can miss ' + canMiss + (canMiss === 1 ? ' class' : ' classes');
+        }
+        // Consecutive presents needed to reach >= 75%:
+        // (attended + x) / (held + x) >= 0.75 => 0.25x >= 0.75*held - attended => x >= 3*held - 4*attended
+        const need = Math.max(1, Math.ceil(3 * held - 4 * attended));
+        return 'Below 75% · Attend next ' + need + (need === 1 ? ' class' : ' classes');
+      }
+
+      function getStatusClass(attended, held) {
+        if (held === 0) return 'is-zero';
+        return calcPercentage(attended, held) >= THRESHOLD ? 'is-good' : 'is-low';
+      }
+
+      // Render Overall Header + Subject Cards
+      function render() {
+        const totals = subjects.reduce(
+          function (acc, s) {
+            acc.attended += s.attended;
+            acc.held += s.held;
+            return acc;
+          },
+          { attended: 0, held: 0 }
+        );
+
+        const overallPct = calcPercentage(totals.attended, totals.held);
+        const overallDisplay = formatPercent(overallPct, totals.held);
+
+        els.overallPercent.textContent = overallDisplay;
+        els.overallPercent.className =
+          'overall-percent ' +
+          (totals.held === 0 ? 'is-empty' : overallPct >= THRESHOLD ? 'is-good' : 'is-low');
+
+        els.overallFraction.textContent = totals.attended + ' / ' + totals.held;
+
+        if (totals.held === 0) {
+          els.overallStatus.textContent = '75% target';
+          els.overallStatus.className = 'overall-status-text';
+          els.overallRailFill.className = 'overall-rail-fill';
+          els.overallRailFill.style.width = '0%';
+          els.overallProgressbar.setAttribute('aria-valuenow', '0');
+        } else {
+          const isGood = overallPct >= THRESHOLD;
+          els.overallStatus.textContent = isGood ? 'On track (≥ 75%)' : 'Below 75% target';
+          els.overallStatus.className = 'overall-status-text ' + (isGood ? 'is-good' : 'is-low');
+          els.overallRailFill.className = 'overall-rail-fill ' + (isGood ? 'is-good' : 'is-low');
+          els.overallRailFill.style.width = Math.min(100, Math.max(0, overallPct)).toFixed(1) + '%';
+          els.overallProgressbar.setAttribute('aria-valuenow', String(Math.round(overallPct)));
+        }
+
+        els.subjectCountHeading.textContent =
+          subjects.length === 1 ? '1 Subject' : subjects.length + ' Subjects';
+
+        // Clear and rebuild subject list safely via DOM nodes
+        els.subjectList.textContent = '';
+
+        if (subjects.length === 0) {
+          els.emptyState.hidden = false;
+          return;
+        }
+        els.emptyState.hidden = true;
+
+        const frag = document.createDocumentFragment();
+        subjects.forEach(function (subject) {
+          frag.appendChild(createSubjectCard(subject));
+        });
+        els.subjectList.appendChild(frag);
+      }
+
+      function createSubjectCard(subject) {
+        const pct = calcPercentage(subject.attended, subject.held);
+        const statusClass = getStatusClass(subject.attended, subject.held);
+        const pctText = formatPercent(pct, subject.held);
+
+        const card = document.createElement('article');
+        card.className = 'subject-card';
+        card.setAttribute('role', 'button');
+        card.setAttribute('tabindex', '0');
+        card.setAttribute('aria-label', 'Edit ' + subject.name + ', ' + pctText + ' attendance');
+        card.dataset.subjectId = subject.id;
+
+        // Left info container
+        const info = document.createElement('div');
+        info.className = 'subject-info';
+
+        const nameRow = document.createElement('div');
+        nameRow.className = 'subject-name-row';
+        const nameEl = document.createElement('h3');
+        nameEl.className = 'subject-name';
+        nameEl.textContent = subject.name;
+        nameRow.appendChild(nameEl);
+
+        const statsRow = document.createElement('div');
+        statsRow.className = 'subject-stats-row';
+
+        const pctEl = document.createElement('span');
+        pctEl.className = 'subject-pct ' + statusClass;
+        pctEl.textContent = pctText;
+
+        const fracEl = document.createElement('span');
+        fracEl.className = 'subject-fraction';
+        fracEl.textContent = subject.attended + ' / ' + subject.held;
+
+        statsRow.appendChild(pctEl);
+        statsRow.appendChild(fracEl);
+
+        if (subject.perClass > 1) {
+          const perEl = document.createElement('span');
+          perEl.className = 'subject-per-class';
+          perEl.textContent = '· ' + subject.perClass + '/class';
+          statsRow.appendChild(perEl);
+        }
+
+        const insightEl = document.createElement('div');
+        insightEl.className = 'subject-insight ' + (subject.held === 0 ? '' : statusClass);
+        insightEl.textContent = getInsightText(subject.attended, subject.held);
+
+        const miniBar = document.createElement('div');
+        miniBar.className = 'subject-mini-bar';
+        const miniFill = document.createElement('div');
+        miniFill.className = 'subject-mini-fill ' + statusClass;
+        miniFill.style.width = (subject.held === 0 ? 0 : Math.min(100, pct)).toFixed(1) + '%';
+        miniBar.appendChild(miniFill);
+
+        info.appendChild(nameRow);
+        info.appendChild(statsRow);
+        info.appendChild(insightEl);
+        info.appendChild(miniBar);
+
+        // Right quick action buttons (+ Present, - Absent)
+        const actions = document.createElement('div');
+        actions.className = 'quick-actions';
+
+        const step = sanitizePerClass(subject.perClass);
+
+        const presentBtn = document.createElement('button');
+        presentBtn.type = 'button';
+        presentBtn.className = 'action-btn action-btn-present';
+        presentBtn.dataset.quickAction = 'present';
+        presentBtn.setAttribute('aria-label', 'Mark present (+' + step + ') for ' + subject.name);
+        presentBtn.title = 'Present (+' + step + ' attended, +' + step + ' held)';
+        presentBtn.innerHTML =
+          '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 5v14"/><path d="M5 12h14"/></svg>';
+
+        presentBtn.addEventListener('click', function (e) {
+          e.stopPropagation();
+          markQuickAttendance(subject.id, true);
+        });
+
+        const absentBtn = document.createElement('button');
+        absentBtn.type = 'button';
+        absentBtn.className = 'action-btn action-btn-absent';
+        absentBtn.dataset.quickAction = 'absent';
+        absentBtn.setAttribute('aria-label', 'Mark absent (+' + step + ') for ' + subject.name);
+        absentBtn.title = 'Absent (+' + step + ' held)';
+        absentBtn.innerHTML =
+          '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h14"/></svg>';
+
+        absentBtn.addEventListener('click', function (e) {
+          e.stopPropagation();
+          markQuickAttendance(subject.id, false);
+        });
+
+        actions.appendChild(presentBtn);
+        actions.appendChild(absentBtn);
+
+        card.appendChild(info);
+        card.appendChild(actions);
+
+        // Card tap opens detail sheet (never triggered by quick-action buttons)
+        card.addEventListener('click', function (e) {
+          if (e.target && e.target.closest('[data-quick-action]')) return;
+          openEditSheet(subject.id);
+        });
+
+        card.addEventListener('keydown', function (e) {
+          if (e.target !== card) return;
+          if (e.key === 'Enter' || e.key === ' ') {
+            e.preventDefault();
+            openEditSheet(subject.id);
+          }
+        });
+
+        return card;
+      }
+
+      // History Formatting & Recording
+      function formatHistoryTimestamp(ts) {
+        const d = new Date(ts);
+        if (Number.isNaN(d.getTime())) return '';
+        try {
+          const dayAndDate = new Intl.DateTimeFormat(undefined, {
+            weekday: 'short',
+            month: 'short',
+            day: 'numeric',
+            year: 'numeric'
+          }).format(d);
+          const time = new Intl.DateTimeFormat(undefined, {
+            hour: 'numeric',
+            minute: '2-digit'
+          }).format(d);
+          return dayAndDate + ' · ' + time;
+        } catch (_e) {
+          return d.toDateString();
+        }
+      }
+
+      function addHistoryEntry(subject, type, delta) {
+        if (!Array.isArray(subject.history)) subject.history = [];
+        const entry = {
+          id: createId(),
+          type: type,
+          delta: delta,
+          attendedAfter: subject.attended,
+          heldAfter: subject.held,
+          timestamp: Date.now()
+        };
+        subject.history.unshift(entry);
+        if (subject.history.length > 100) {
+          subject.history.length = 100;
+        }
+        return entry.id;
+      }
+
+      function renderSubjectHistory(subject) {
+        const history = Array.isArray(subject.history) ? subject.history : [];
+        els.editHistoryList.textContent = '';
+        els.historyCount.textContent =
+          history.length === 1 ? '1 update' : history.length + ' updates';
+
+        if (history.length === 0) {
+          els.editHistoryEmpty.hidden = false;
+          return;
+        }
+        els.editHistoryEmpty.hidden = true;
+
+        const frag = document.createDocumentFragment();
+        history.forEach(function (item) {
+          const li = document.createElement('li');
+          li.className = 'history-item';
+
+          const statusWrap = document.createElement('div');
+          statusWrap.className = 'history-status';
+
+          const dot = document.createElement('span');
+          dot.className =
+            'history-dot ' +
+            (item.type === 'present'
+              ? 'is-present'
+              : item.type === 'absent'
+                ? 'is-absent'
+                : 'is-manual');
+          dot.setAttribute('aria-hidden', 'true');
+
+          const label = document.createElement('span');
+          label.className = 'history-label';
+          if (item.type === 'present') {
+            label.textContent = item.delta > 1 ? 'Present (+' + item.delta + ')' : 'Present';
+          } else if (item.type === 'absent') {
+            label.textContent = item.delta > 1 ? 'Absent (+' + item.delta + ')' : 'Absent';
+          } else {
+            label.textContent = 'Edited (' + item.attendedAfter + '/' + item.heldAfter + ')';
+          }
+
+          statusWrap.appendChild(dot);
+          statusWrap.appendChild(label);
+
+          const dateEl = document.createElement('span');
+          dateEl.className = 'history-date';
+          dateEl.textContent = formatHistoryTimestamp(item.timestamp);
+
+          li.appendChild(statusWrap);
+          li.appendChild(dateEl);
+          frag.appendChild(li);
+        });
+
+        els.editHistoryList.appendChild(frag);
+      }
+
+      // Quick Attendance Actions (+ / -)
+      function markQuickAttendance(id, isPresent) {
+        const subject = subjects.find(function (s) { return s.id === id; });
+        if (!subject) return;
+
+        const step = sanitizePerClass(subject.perClass);
+        const prevAttended = subject.attended;
+        const prevHeld = subject.held;
+
+        subject.held += step;
+        if (isPresent) {
+          subject.attended += step;
+        }
+
+        const historyId = addHistoryEntry(subject, isPresent ? 'present' : 'absent', step);
+
+        lastUndo = {
+          id: subject.id,
+          prevAttended: prevAttended,
+          prevHeld: prevHeld,
+          historyId: historyId
+        };
+
+        if (navigator.vibrate) {
+          try { navigator.vibrate(10); } catch (_e) {}
+        }
+
+        saveSubjects();
+        render();
+        const stepSuffix = step > 1 ? ' (+' + step + ')' : '';
+        showToast((isPresent ? 'Present' : 'Absent') + stepSuffix + ': ' + subject.name);
+      }
+
+      // Undo Toast
+      function showToast(message) {
+        els.toastMsg.textContent = message;
+        els.toast.classList.add('is-visible');
+        if (toastTimer) clearTimeout(toastTimer);
+        toastTimer = setTimeout(hideToast, 3600);
+      }
+
+      function hideToast() {
+        els.toast.classList.remove('is-visible');
+        if (toastTimer) {
+          clearTimeout(toastTimer);
+          toastTimer = null;
+        }
+      }
+
+      els.toastUndoBtn.addEventListener('click', function () {
+        if (!lastUndo) return;
+        const subject = subjects.find(function (s) { return s.id === lastUndo.id; });
+        if (subject) {
+          subject.attended = lastUndo.prevAttended;
+          subject.held = lastUndo.prevHeld;
+          if (lastUndo.historyId && Array.isArray(subject.history)) {
+            subject.history = subject.history.filter(function (h) {
+              return h.id !== lastUndo.historyId;
+            });
+          }
+          saveSubjects();
+          render();
+          if (editingId === subject.id) {
+            renderSubjectHistory(subject);
+          }
+        }
+        lastUndo = null;
+        hideToast();
+      });
+
+      // Sheet Management Helpers
+      function openSheet(backdropEl) {
+        backdropEl.classList.add('is-open');
+        backdropEl.setAttribute('aria-hidden', 'false');
+        document.body.classList.add('sheet-open');
+      }
+
+      function closeSheet(backdropEl) {
+        backdropEl.classList.remove('is-open');
+        backdropEl.setAttribute('aria-hidden', 'true');
+        if (
+          !els.addSheet.classList.contains('is-open') &&
+          !els.editSheet.classList.contains('is-open') &&
+          !els.iosGuideSheet.classList.contains('is-open')
+        ) {
+          document.body.classList.remove('sheet-open');
+        }
+      }
+
+      function closeAllSheets() {
+        closeSheet(els.addSheet);
+        closeSheet(els.editSheet);
+        closeSheet(els.iosGuideSheet);
+        editingId = null;
+      }
+
+      document.addEventListener('keydown', function (e) {
+        if (e.key === 'Escape') {
+          closeAllSheets();
+        }
+      });
+
+      // Reusable Stepper & Validation Binder
+      function syncCountControls(heldInput, attendedInput, heldDec, attendedDec, attendedInc, errorEl, onUpdate) {
+        let held = sanitizeNonNegInt(heldInput.value);
+        let attended = sanitizeNonNegInt(attendedInput.value);
+        let errText = '';
+
+        if (attended > held) {
+          attended = held;
+          attendedInput.value = String(attended);
+          errText = 'Attended cannot exceed classes held.';
+        }
+
+        heldInput.value = String(held);
+        attendedInput.value = String(attended);
+        attendedInput.max = String(held);
+
+        heldDec.disabled = held <= 0;
+        attendedDec.disabled = attended <= 0;
+        attendedInc.disabled = attended >= held;
+
+        if (errorEl) errorEl.textContent = errText;
+        if (typeof onUpdate === 'function') onUpdate(attended, held);
+      }
+
+      // Per-Class Stepper Sync Helper
+      function syncPerClassControls(inputEl, decBtn, incBtn) {
+        const val = sanitizePerClass(inputEl.value);
+        inputEl.value = String(val);
+        decBtn.disabled = val <= 1;
+        incBtn.disabled = val >= 20;
+      }
+
+      // Add Subject Sheet Logic
+      function openAddSheet() {
+        els.addNameInput.value = '';
+        els.addNameError.textContent = '';
+        els.addPerClassInput.value = '1';
+        els.addHeldInput.value = '0';
+        els.addAttendedInput.value = '0';
+        els.addCountError.textContent = '';
+        syncPerClassControls(els.addPerClassInput, els.addPerClassDec, els.addPerClassInc);
+        syncCountControls(
+          els.addHeldInput,
+          els.addAttendedInput,
+          els.addHeldDec,
+          els.addAttendedDec,
+          els.addAttendedInc,
+          els.addCountError
+        );
+        openSheet(els.addSheet);
+        setTimeout(function () { els.addNameInput.focus(); }, 180);
+      }
+
+      els.openAddBtn.addEventListener('click', openAddSheet);
+      els.closeAddBtn.addEventListener('click', function () { closeSheet(els.addSheet); });
+      els.cancelAddBtn.addEventListener('click', function () { closeSheet(els.addSheet); });
+      els.addSheet.addEventListener('click', function (e) {
+        if (e.target === els.addSheet) closeSheet(els.addSheet);
+      });
+
+      els.addNameInput.addEventListener('input', function () {
+        if (els.addNameInput.value.trim()) {
+          els.addNameError.textContent = '';
+        }
+      });
+
+      els.addPerClassDec.addEventListener('click', function () {
+        const next = Math.max(1, sanitizePerClass(els.addPerClassInput.value) - 1);
+        els.addPerClassInput.value = String(next);
+        syncPerClassControls(els.addPerClassInput, els.addPerClassDec, els.addPerClassInc);
+      });
+
+      els.addPerClassInc.addEventListener('click', function () {
+        const next = Math.min(20, sanitizePerClass(els.addPerClassInput.value) + 1);
+        els.addPerClassInput.value = String(next);
+        syncPerClassControls(els.addPerClassInput, els.addPerClassDec, els.addPerClassInc);
+      });
+
+      els.addPerClassInput.addEventListener('change', function () {
+        syncPerClassControls(els.addPerClassInput, els.addPerClassDec, els.addPerClassInc);
+      });
+
+      els.addHeldDec.addEventListener('click', function () {
+        const next = Math.max(0, sanitizeNonNegInt(els.addHeldInput.value) - 1);
+        els.addHeldInput.value = String(next);
+        syncCountControls(els.addHeldInput, els.addAttendedInput, els.addHeldDec, els.addAttendedDec, els.addAttendedInc, els.addCountError);
+      });
+
+      els.addHeldInc.addEventListener('click', function () {
+        const next = sanitizeNonNegInt(els.addHeldInput.value) + 1;
+        els.addHeldInput.value = String(next);
+        syncCountControls(els.addHeldInput, els.addAttendedInput, els.addHeldDec, els.addAttendedDec, els.addAttendedInc, els.addCountError);
+      });
+
+      els.addAttendedDec.addEventListener('click', function () {
+        const next = Math.max(0, sanitizeNonNegInt(els.addAttendedInput.value) - 1);
+        els.addAttendedInput.value = String(next);
+        syncCountControls(els.addHeldInput, els.addAttendedInput, els.addHeldDec, els.addAttendedDec, els.addAttendedInc, els.addCountError);
+      });
+
+      els.addAttendedInc.addEventListener('click', function () {
+        const held = sanitizeNonNegInt(els.addHeldInput.value);
+        const next = Math.min(held, sanitizeNonNegInt(els.addAttendedInput.value) + 1);
+        els.addAttendedInput.value = String(next);
+        syncCountControls(els.addHeldInput, els.addAttendedInput, els.addHeldDec, els.addAttendedDec, els.addAttendedInc, els.addCountError);
+      });
+
+      els.addHeldInput.addEventListener('change', function () {
+        syncCountControls(els.addHeldInput, els.addAttendedInput, els.addHeldDec, els.addAttendedDec, els.addAttendedInc, els.addCountError);
+      });
+
+      els.addAttendedInput.addEventListener('change', function () {
+        syncCountControls(els.addHeldInput, els.addAttendedInput, els.addHeldDec, els.addAttendedDec, els.addAttendedInc, els.addCountError);
+      });
+
+      els.addForm.addEventListener('submit', function (e) {
+        e.preventDefault();
+        const name = els.addNameInput.value.trim();
+        if (!name) {
+          els.addNameError.textContent = 'Please enter a subject name.';
+          els.addNameInput.focus();
+          return;
+        }
+
+        const perClass = sanitizePerClass(els.addPerClassInput.value);
+        const held = sanitizeNonNegInt(els.addHeldInput.value);
+        let attended = sanitizeNonNegInt(els.addAttendedInput.value);
+        if (attended > held) {
+          els.addCountError.textContent = 'Attended cannot exceed classes held.';
+          els.addAttendedInput.value = String(held);
+          syncCountControls(els.addHeldInput, els.addAttendedInput, els.addHeldDec, els.addAttendedDec, els.addAttendedInc, els.addCountError);
+          return;
+        }
+
+        const newSubject = {
+          id: createId(),
+          name: name.slice(0, 80),
+          attended: attended,
+          held: held,
+          perClass: perClass,
+          history: []
+        };
+
+        if (held > 0) {
+          addHistoryEntry(newSubject, 'manual', held);
+        }
+
+        subjects.push(newSubject);
+
+        saveSubjects();
+        render();
+        closeSheet(els.addSheet);
+      });
+
+      // Edit Subject Detail Sheet Logic
+      function updateEditPreview(attended, held) {
+        const pct = calcPercentage(attended, held);
+        const statusClass = getStatusClass(attended, held);
+        els.editPreviewPct.textContent = formatPercent(pct, held);
+        els.editPreviewPct.className = 'detail-preview-pct ' + statusClass;
+        els.editPreviewFraction.textContent = attended + ' / ' + held + ' classes';
+        els.editPreviewStatus.textContent = getInsightText(attended, held);
+      }
+
+      function openEditSheet(id) {
+        const subject = subjects.find(function (s) { return s.id === id; });
+        if (!subject) return;
+
+        editingId = subject.id;
+        els.editNameInput.value = subject.name;
+        els.editNameError.textContent = '';
+        els.editPerClassInput.value = String(sanitizePerClass(subject.perClass));
+        els.editHeldInput.value = String(subject.held);
+        els.editAttendedInput.value = String(subject.attended);
+        els.editCountError.textContent = '';
+
+        // Reset inline delete confirmation
+        els.requestDeleteBtn.hidden = false;
+        els.deleteConfirmBox.hidden = true;
+
+        syncPerClassControls(els.editPerClassInput, els.editPerClassDec, els.editPerClassInc);
+        syncCountControls(
+          els.editHeldInput,
+          els.editAttendedInput,
+          els.editHeldDec,
+          els.editAttendedDec,
+          els.editAttendedInc,
+          els.editCountError,
+          updateEditPreview
+        );
+        renderSubjectHistory(subject);
+
+        openSheet(els.editSheet);
+      }
+
+      els.closeEditBtn.addEventListener('click', function () {
+        closeSheet(els.editSheet);
+        editingId = null;
+      });
+
+      els.cancelEditBtn.addEventListener('click', function () {
+        closeSheet(els.editSheet);
+        editingId = null;
+      });
+
+      els.editSheet.addEventListener('click', function (e) {
+        if (e.target === els.editSheet) {
+          closeSheet(els.editSheet);
+          editingId = null;
+        }
+      });
+
+      els.editNameInput.addEventListener('input', function () {
+        if (els.editNameInput.value.trim()) {
+          els.editNameError.textContent = '';
+        }
+      });
+
+      els.editPerClassDec.addEventListener('click', function () {
+        const next = Math.max(1, sanitizePerClass(els.editPerClassInput.value) - 1);
+        els.editPerClassInput.value = String(next);
+        syncPerClassControls(els.editPerClassInput, els.editPerClassDec, els.editPerClassInc);
+      });
+
+      els.editPerClassInc.addEventListener('click', function () {
+        const next = Math.min(20, sanitizePerClass(els.editPerClassInput.value) + 1);
+        els.editPerClassInput.value = String(next);
+        syncPerClassControls(els.editPerClassInput, els.editPerClassDec, els.editPerClassInc);
+      });
+
+      els.editPerClassInput.addEventListener('change', function () {
+        syncPerClassControls(els.editPerClassInput, els.editPerClassDec, els.editPerClassInc);
+      });
+
+      els.editHeldDec.addEventListener('click', function () {
+        const next = Math.max(0, sanitizeNonNegInt(els.editHeldInput.value) - 1);
+        els.editHeldInput.value = String(next);
+        syncCountControls(els.editHeldInput, els.editAttendedInput, els.editHeldDec, els.editAttendedDec, els.editAttendedInc, els.editCountError, updateEditPreview);
+      });
+
+      els.editHeldInc.addEventListener('click', function () {
+        const next = sanitizeNonNegInt(els.editHeldInput.value) + 1;
+        els.editHeldInput.value = String(next);
+        syncCountControls(els.editHeldInput, els.editAttendedInput, els.editHeldDec, els.editAttendedDec, els.editAttendedInc, els.editCountError, updateEditPreview);
+      });
+
+      els.editAttendedDec.addEventListener('click', function () {
+        const next = Math.max(0, sanitizeNonNegInt(els.editAttendedInput.value) - 1);
+        els.editAttendedInput.value = String(next);
+        syncCountControls(els.editHeldInput, els.editAttendedInput, els.editHeldDec, els.editAttendedDec, els.editAttendedInc, els.editCountError, updateEditPreview);
+      });
+
+      els.editAttendedInc.addEventListener('click', function () {
+        const held = sanitizeNonNegInt(els.editHeldInput.value);
+        const next = Math.min(held, sanitizeNonNegInt(els.editAttendedInput.value) + 1);
+        els.editAttendedInput.value = String(next);
+        syncCountControls(els.editHeldInput, els.editAttendedInput, els.editHeldDec, els.editAttendedDec, els.editAttendedInc, els.editCountError, updateEditPreview);
+      });
+
+      function handleEditNumberTyping() {
+        const rawHeld = els.editHeldInput.value;
+        const rawAtt = els.editAttendedInput.value;
+        if (rawHeld === '' || rawAtt === '') return;
+        const held = sanitizeNonNegInt(rawHeld);
+        const attended = Math.min(held, sanitizeNonNegInt(rawAtt));
+        els.editHeldDec.disabled = held <= 0;
+        els.editAttendedDec.disabled = attended <= 0;
+        els.editAttendedInc.disabled = attended >= held;
+        updateEditPreview(attended, held);
+      }
+
+      els.editHeldInput.addEventListener('input', handleEditNumberTyping);
+      els.editAttendedInput.addEventListener('input', handleEditNumberTyping);
+
+      els.editHeldInput.addEventListener('change', function () {
+        syncCountControls(els.editHeldInput, els.editAttendedInput, els.editHeldDec, els.editAttendedDec, els.editAttendedInc, els.editCountError, updateEditPreview);
+      });
+
+      els.editAttendedInput.addEventListener('change', function () {
+        syncCountControls(els.editHeldInput, els.editAttendedInput, els.editHeldDec, els.editAttendedDec, els.editAttendedInc, els.editCountError, updateEditPreview);
+      });
+
+      els.editForm.addEventListener('submit', function (e) {
+        e.preventDefault();
+        if (!editingId) return;
+
+        const subject = subjects.find(function (s) { return s.id === editingId; });
+        if (!subject) return;
+
+        const name = els.editNameInput.value.trim();
+        if (!name) {
+          els.editNameError.textContent = 'Subject name cannot be empty.';
+          els.editNameInput.focus();
+          return;
+        }
+
+        const perClass = sanitizePerClass(els.editPerClassInput.value);
+        const held = sanitizeNonNegInt(els.editHeldInput.value);
+        const rawAttended = sanitizeNonNegInt(els.editAttendedInput.value);
+        if (rawAttended > held) {
+          els.editAttendedInput.value = String(held);
+          syncCountControls(els.editHeldInput, els.editAttendedInput, els.editHeldDec, els.editAttendedDec, els.editAttendedInc, els.editCountError, updateEditPreview);
+          return;
+        }
+
+        const prevHeld = subject.held;
+        const prevAttended = subject.attended;
+
+        subject.name = name.slice(0, 80);
+        subject.perClass = perClass;
+        subject.held = held;
+        subject.attended = rawAttended;
+
+        const deltaHeld = held - prevHeld;
+        const deltaAtt = rawAttended - prevAttended;
+        if (deltaHeld !== 0 || deltaAtt !== 0) {
+          if (deltaHeld > 0 && deltaAtt === deltaHeld) {
+            addHistoryEntry(subject, 'present', deltaHeld);
+          } else if (deltaHeld > 0 && deltaAtt === 0) {
+            addHistoryEntry(subject, 'absent', deltaHeld);
+          } else {
+            addHistoryEntry(subject, 'manual', Math.abs(deltaHeld) || Math.abs(deltaAtt) || 1);
+          }
+        }
+
+        saveSubjects();
+        render();
+        closeSheet(els.editSheet);
+        editingId = null;
+      });
+
+      // Delete Subject with Inline Confirmation
+      els.requestDeleteBtn.addEventListener('click', function () {
+        const subject = subjects.find(function (s) { return s.id === editingId; });
+        if (!subject) return;
+        els.deleteConfirmText.textContent =
+          'Delete "' + subject.name + '"? All logged classes for this subject will be permanently removed.';
+        els.requestDeleteBtn.hidden = true;
+        els.deleteConfirmBox.hidden = false;
+      });
+
+      els.cancelDeleteBtn.addEventListener('click', function () {
+        els.deleteConfirmBox.hidden = true;
+        els.requestDeleteBtn.hidden = false;
+      });
+
+      els.confirmDeleteBtn.addEventListener('click', function () {
+        if (!editingId) return;
+        subjects = subjects.filter(function (s) { return s.id !== editingId; });
+        if (lastUndo && lastUndo.id === editingId) {
+          lastUndo = null;
+          hideToast();
+        }
+        saveSubjects();
+        render();
+        closeSheet(els.editSheet);
+        editingId = null;
+      });
+
+      // PWA: Generate PNG Apple Touch Icon & Upgrade Manifest Icons Dynamically
+      function generatePngIconDataUri(size, maskable) {
+        try {
+          const canvas = document.createElement('canvas');
+          canvas.width = size;
+          canvas.height = size;
+          const ctx = canvas.getContext('2d');
+          if (!ctx) return null;
+
+          // Smooth black-to-cosmic-orange gradient background
+          const grad = ctx.createLinearGradient(0, 0, 0, size);
+          grad.addColorStop(0, '#000000');
+          grad.addColorStop(1, '#8C2D0A');
+          ctx.fillStyle = grad;
+          ctx.fillRect(0, 0, size, size);
+
+          // Subtle cosmic orange inner border for non-maskable icon
+          if (!maskable) {
+            ctx.strokeStyle = 'rgba(249, 115, 22, 0.42)';
+            ctx.lineWidth = Math.max(2, size * 0.02);
+            const inset = size * 0.06;
+            ctx.strokeRect(inset, inset, size - inset * 2, size - inset * 2);
+          }
+
+          // Green checkmark centered inside 70% safe zone (safe for maskable crop)
+          ctx.strokeStyle = '#22C55E';
+          ctx.lineWidth = size * (maskable ? 0.075 : 0.085);
+          ctx.lineCap = 'round';
+          ctx.lineJoin = 'round';
+          ctx.beginPath();
+          const scale = maskable ? 0.8 : 1.0;
+          const ox = (size * (1 - scale)) / 2;
+          const oy = (size * (1 - scale)) / 2;
+          ctx.moveTo(ox + size * 0.29 * scale, oy + size * 0.52 * scale);
+          ctx.lineTo(ox + size * 0.43 * scale, oy + size * 0.66 * scale);
+          ctx.lineTo(ox + size * 0.72 * scale, oy + size * 0.35 * scale);
+          ctx.stroke();
+
+          return canvas.toDataURL('image/png');
+        } catch (_err) {
+          return null;
+        }
+      }
+
+      function enhancePwaIcons() {
+        const png180 = generatePngIconDataUri(180, false);
+        const png192 = generatePngIconDataUri(192, false);
+        const png512 = generatePngIconDataUri(512, false);
+        const maskable512 = generatePngIconDataUri(512, true);
+
+        if (png180) {
+          const appleIcon = document.getElementById('apple-touch-icon');
+          if (appleIcon) appleIcon.setAttribute('href', png180);
+        }
+
+        if (png192 && png512 && maskable512) {
+          const manifestObj = {
+            id: '/',
+            name: 'Subject Attendance Tracker',
+            short_name: 'Attendance',
+            description: 'Personal Subject Attendance Tracker with offline storage',
+            start_url: window.location.pathname || './',
+            scope: './',
+            display: 'standalone',
+            orientation: 'portrait',
+            background_color: '#000000',
+            theme_color: '#000000',
+            icons: [
+              { src: png192, sizes: '192x192', type: 'image/png', purpose: 'any' },
+              { src: png512, sizes: '512x512', type: 'image/png', purpose: 'any' },
+              { src: maskable512, sizes: '512x512', type: 'image/png', purpose: 'maskable' }
+            ]
+          };
+          const manifestEl = document.getElementById('app-manifest');
+          if (manifestEl) {
+            manifestEl.setAttribute(
+              'href',
+              'data:application/manifest+json;charset=utf-8,' +
+                encodeURIComponent(JSON.stringify(manifestObj))
+            );
+          }
+        }
+      }
+
+      // PWA In-App Install Prompt Handling
+      function initInstallPrompt() {
+        const isStandalone =
+          window.matchMedia('(display-mode: standalone)').matches ||
+          window.navigator.standalone === true;
+
+        if (isStandalone) {
+          els.installBtn.hidden = true;
+          return;
+        }
+
+        const isIOS = /iphone|ipad|ipod/i.test(window.navigator.userAgent);
+        if (isIOS) {
+          els.installBtnLabel.textContent = 'Add to Home';
+          els.installBtn.hidden = false;
+        }
+
+        window.addEventListener('beforeinstallprompt', function (e) {
+          e.preventDefault();
+          deferredInstallPrompt = e;
+          els.installBtnLabel.textContent = 'Install App';
+          els.installBtn.hidden = false;
+        });
+
+        window.addEventListener('appinstalled', function () {
+          deferredInstallPrompt = null;
+          els.installBtn.hidden = true;
+        });
+
+        els.installBtn.addEventListener('click', async function () {
+          if (deferredInstallPrompt) {
+            try {
+              await deferredInstallPrompt.prompt();
+              const choice = await deferredInstallPrompt.userChoice;
+              if (choice && choice.outcome === 'accepted') {
+                els.installBtn.hidden = true;
+              }
+              deferredInstallPrompt = null;
+            } catch (_err) {
+              openSheet(els.iosGuideSheet);
+            }
+          } else {
+            openSheet(els.iosGuideSheet);
+          }
+        });
+
+        els.closeIosGuideBtn.addEventListener('click', function () { closeSheet(els.iosGuideSheet); });
+        els.doneIosGuideBtn.addEventListener('click', function () { closeSheet(els.iosGuideSheet); });
+        els.iosGuideSheet.addEventListener('click', function (e) {
+          if (e.target === els.iosGuideSheet) closeSheet(els.iosGuideSheet);
+        });
+      }
+
+      // Initialize App
+      enhancePwaIcons();
+      initInstallPrompt();
+      render();
+    })();
+  </script>
+</body>
+</html>
